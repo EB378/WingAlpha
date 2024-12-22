@@ -34,16 +34,16 @@ const Footer = ({ locale }: { locale: string }) => {
             <h3 className="text-lg font-bold">{t("navigation")}</h3>
             <ul className="mt-4 space-y-2 text-sm text-gray-300">
               <li>
-                <a href="/book-flight" className="hover:underline">{t("book a flight")}</a>
+                <Link href="/book-flight" className="hover:underline">{t("book a flight")}</Link>
               </li>
               <li>
-                <a href={`/${locale}/#aircraft-options`} className="hover:underline">{t("aircraft options")}</a>
+                <Link href={`/${locale}/#aircraft-options`} className="hover:underline">{t("aircraft options")}</Link>
               </li>
               <li>
-                <a href={`/${locale}/#testimonials`} className="hover:underline">{t("testimonials")}</a>
+                <Link href={`/${locale}/#testimonials`} className="hover:underline">{t("testimonials")}</Link>
               </li>
               <li>
-                <a href={`/${locale}/#contactsec`} className="hover:underline">{t("contact")}</a>
+                <Link href={`/${locale}/#contactsec`} className="hover:underline">{t("contact")}</Link>
               </li>
             </ul>
           </div>
@@ -52,13 +52,13 @@ const Footer = ({ locale }: { locale: string }) => {
             <h3 className="text-lg font-bold">{t("socialmedia")}</h3>
             <ul className="mt-4 space-y-2 text-sm text-gray-300">
               <li>
-                <a href="https://www.instagram.com/aircraft_rentals/" className="hover:underline">{t("instagram")}</a>
+                <Link href="https://www.instagram.com/aircraft_rentals/" className="hover:underline">{t("instagram")}</Link>
               </li>
               <li>
-                <a href="https://www.facebook.com/aircraft_rentals" className="hover:underline">{t("facebook")}</a>
+                <Link href="https://www.facebook.com/aircraft_rentals" className="hover:underline">{t("facebook")}</Link>
               </li>
               <li>
-                <a href="https://www.linkedin.com/company/aircraft-rentals" className="hover:underline">{t("linkedin")}</a>
+                <Link href="https://www.linkedin.com/company/aircraft-rentals" className="hover:underline">{t("linkedin")}</Link>
               </li>
             </ul>
           </div>
@@ -67,7 +67,7 @@ const Footer = ({ locale }: { locale: string }) => {
             <h3 className="text-lg font-bold">{t("company")}</h3>
             <ul className="mt-4 space-y-2 text-sm text-gray-300">
               <li>
-                <a href={`/${locale}/about`} className="hover:underline">{t("about")}</a>
+                <Link href={`/${locale}/about`} className="hover:underline">{t("about")}</Link>
               </li>
             </ul>
           </div>
@@ -76,13 +76,13 @@ const Footer = ({ locale }: { locale: string }) => {
             <h3 className="text-lg font-bold">{t("legal")}</h3>
             <ul className="mt-4 space-y-2 text-sm text-gray-300">
               <li>
-                <a href={`/${locale}/terms`} className="hover:underline">{t("terms")}</a>
+                <Link href={`/${locale}/terms`} className="hover:underline">{t("terms")}</Link>
               </li>
               <li>
-                <a href={`/${locale}/privacy`} className="hover:underline">{t("privacy")}</a>
+                <Link href={`/${locale}/privacy`} className="hover:underline">{t("privacy")}</Link>
               </li>
               <li>
-                <a href={`/${locale}/license`} className="hover:underline">{t("license")}</a>
+                <Link href={`/${locale}/license`} className="hover:underline">{t("license")}</Link>
               </li>
             </ul>
           </div>
