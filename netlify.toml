@@ -1,0 +1,11 @@
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+# package = "netlify-plugin-cypress"
+# [plugins.inputs]
+#   specs = "cypress/e2e/**/*.cy.js"
+
+
+[[redirects]]
+  from = "/*"
+  to = "/"
+  status = 200
