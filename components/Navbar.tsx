@@ -59,7 +59,7 @@ const Navbar = ({ locale }: { locale: string }) => {
             {t("contact")}
           </Link>
           <Link
-            href={`/book-flight`}
+            href={`/booking`}
             className="text-lg font-bold hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r from-blue-400 to-white transition-transform transform hover:scale-110"
           >
             {t("bookFlight")}
@@ -100,7 +100,7 @@ const Navbar = ({ locale }: { locale: string }) => {
             {t("contact")}
           </Link>
           <Link
-            href={`/book-flight`}
+            href={`/booking`}
             className="block text-lg font-bold hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r from-blue-400 to-white"
             onClick={() => setIsMobileMenuOpen(false)}
           >
