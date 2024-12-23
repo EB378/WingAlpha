@@ -29,8 +29,8 @@ const Navbar = ({ locale }: { locale: string }) => {
         <Link href={`/${currentLocale}/`}>
           <Image
             src="/copyforge.webp" // Replace with the aircraft rental logo path
-            width={172}
-            height={35}
+            width={60}
+            height={20}
             alt="Southern Finland Aircraft Rentals"
             className="cursor-pointer"
           />
