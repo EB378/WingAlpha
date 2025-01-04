@@ -13,7 +13,7 @@ import React from 'react';
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
-  : "http://localhost:3000";
+  : "https://wingtemplate.netlify.app";
 
 const APP_NAME = "Wing-Alpha";
 const APP_DEFAULT_TITLE = "My Awesome PWA App";
