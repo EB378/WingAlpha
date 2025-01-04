@@ -1,0 +1,56 @@
+{
+    "HomePage": {
+      "Affordable Aircraft Rentals": "Edulliset lentokonevuokraukset",
+      "Explore the beauty of Southern Finland from the skies": "Koe Etelä-Suomen kauneus taivaalta.",
+      "Book Your Flight": "Varaa Lentosi",
+      "Contact Us": "Ota Yhteyttä",
+      "In Southern Finland": "Etelä-Suomessa",
+      "Flexible Booking": "Joustavat Varaukset",
+      "Choose rental times that fit your schedule": "Valitse vuokra-ajat, jotka sopivat aikatauluusi.",
+      "Cost-Effective Pricing": "Edulliset Hinnat",
+      "Enjoy premium services at affordable rates": "Nauti korkealaatuisista palveluista edullisin hinnoin.",
+      "Beautiful Destinations": "Upeat Kohteet",
+      "Fly to stunning locations around Southern Finland": "Lennä upeisiin kohteisiin ympäri Etelä-Suomea.",
+      "Start Your Adventure Today": "Aloita Seikkailusi Tänään",
+      "Discover the freedom of flight": "Koe lentämisen vapaus.",
+      "Book Now": "Varaa Nyt"
+    },
+    "AircraftOptions": {
+      "title": "Valitse Lentokoneesi",
+      "aircraft1Description": "Monipuolinen ja luotettava lentokone, täydellinen aloittelijoille.",
+      "aircraft2Description": "Ihanteellinen lyhyille matkoille ja navigointiharjoitteluun.",
+      "aircraft3Description": "Moderni valinta, joka tarjoaa erinomaisen suorituskyvyn ja mukavuuden."
+    },
+    "Contact": {
+      "title": "Ota Yhteyttä",
+      "name": "Nimi",
+      "emailentry": "Sähköpostiosoite",
+      "reason": "Ota yhteyttä",
+      "send": "Lähetä Viesti",
+      "contact information": "Yhteystiedot"
+    },
+    "Footer": {
+      "aboutText": "Edulliset ja luotettavat lentokoneiden vuokraukset Etelä-Suomessa.",
+      "navigation": "Navigointi",
+      "book a flight": "Varaa lento",
+      "aircraft options": "Lentokonemallit",
+      "testimonials": "Asiakaspalautteet",
+      "contact": "Yhteystiedot",
+      "socialmedia": "Sosiaalinen media",
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "linkedin": "LinkedIn",
+      "company": "Yritys",
+      "about": "Meistä",
+      "legal": "Oikeudellinen",
+      "terms": "Käyttöehdot",
+      "privacy": "Tietosuojakäytäntö",
+      "license": "Lisenssisopimus",
+      "rights": "Kaikki oikeudet pidätetään."
+    },
+    "NavbarLinks": {
+      "contact": "Yhteystiedot",
+      "aircraftOptions": "Lentokonemallit",
+      "bookFlight": "Varaa lento"
+    }
+  }

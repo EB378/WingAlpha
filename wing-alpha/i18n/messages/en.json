@@ -1,0 +1,57 @@
+{
+    "HomePage": {
+      "Affordable Aircraft Rentals": "Affordable Aircraft Rentals",
+      "Explore the beauty of Southern Finland from the skies": "Explore the beauty of Southern Finland from the skies.",
+      "Book Your Flight": "Book Your Flight",
+      "Contact Us": "Contact Us",
+      "In Southern Finland": "In Southern Finland",
+      "Flexible Booking": "Flexible Booking",
+      "Choose rental times that fit your schedule": "Choose rental times that fit your schedule.",
+      "Cost-Effective Pricing": "Cost-Effective Pricing",
+      "Enjoy premium services at affordable rates": "Enjoy premium services at affordable rates.",
+      "Beautiful Destinations": "Beautiful Destinations",
+      "Fly to stunning locations around Southern Finland": "Fly to stunning locations around Southern Finland.",
+      "Start Your Adventure Today": "Start Your Adventure Today",
+      "Discover the freedom of flight": "Discover the freedom of affordable aircraft rentals.",
+      "Book Now": "Book a Flight"
+    },
+    "AircraftOptions": {
+      "title": "Choose Your Aircraft",
+      "aircraft1Description": "A versatile and reliable aircraft, perfect for beginners.",
+      "aircraft2Description": "Ideal for short trips and navigation practice.",
+      "aircraft3Description": "A modern choice with excellent performance and comfort."
+    },
+    "Contact": {
+      "title": "Contact Us",
+      "name": "Name",
+      "emailentry": "Email Address",
+      "reason": "Reason for Contact",
+      "send": "Send Message",
+      "contact information": "Contact Information"
+    },
+    "Footer": {
+      "aboutText": "Affordable and reliable aircraft rentals in Southern Finland.",
+      "navigation": "Navigation",
+      "book a flight": "Book a Flight",
+      "aircraft options": "Aircraft Options",
+      "testimonials": "Testimonials",
+      "contact": "Contact",
+      "socialmedia": "Social Media",
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "linkedin": "LinkedIn",
+      "company": "Company",
+      "about": "About Us",
+      "legal": "Legal",
+      "terms": "Terms of Service",
+      "privacy": "Privacy Policy",
+      "license": "License Agreement",
+      "rights": "All rights reserved."
+    },
+    "NavbarLinks": {
+      "contact": "Contact",
+      "aircraftOptions": "Aircraft Options",
+      "bookFlight": "Book a Flight",
+      "testimonials":"Testimonials"
+    }
+  }
