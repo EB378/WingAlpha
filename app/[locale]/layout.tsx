@@ -16,9 +16,9 @@ const defaultUrl = process.env.VERCEL_URL
   : "https://wingtemplate.netlify.app";
 
 const APP_NAME = "Wing-Alpha";
-const APP_DEFAULT_TITLE = "My Awesome PWA App";
+const APP_DEFAULT_TITLE = "Wing-Alpha";
 const APP_TITLE_TEMPLATE = "%s - PWA App";
-const APP_DESCRIPTION = "Best PWA app in the world!";
+const APP_DESCRIPTION = "Wing-Alpha Template App";
 
 export const metadata: Metadata = {
   applicationName: APP_NAME,
