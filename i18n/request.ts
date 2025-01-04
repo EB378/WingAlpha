@@ -1,5 +1,5 @@
 // i18n/request.ts
-import { routing } from '../i18n/routing'; // Adjust path as necessary
+import { routing } from './routing'; // Adjust path as necessary
 import { getRequestConfig } from 'next-intl/server';
 
 export default getRequestConfig(async ({ requestLocale }) => {
