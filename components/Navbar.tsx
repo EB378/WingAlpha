@@ -120,10 +120,10 @@ const Navbar = ({
             {t("bookFlight")}
           </Link>
           <Link 
-            href={`/${currentLocale}/notes`}
+            href={`/${currentLocale}/protected`}
             className="block text-lg font-bold hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r from-blue-400 to-white"
           >
-            {t("bookFlight")}
+            Protected
           </Link>
           {children}
           <select
