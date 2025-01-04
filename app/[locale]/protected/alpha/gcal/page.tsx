@@ -240,7 +240,7 @@ const App: React.FC = () => {
               Fetch Today&apos;s Events
             </button>
             <CalendarScheduler/>
-            <pre className="mt-4 bg-gray-200 p-2 rounded text-sm text-black">
+            <pre className="mt-4 bg-gray-200 p-2 rounded text-sm text-black overflow-auto">
               {JSON.stringify(events, null, 2)}
             </pre>
           </div>
