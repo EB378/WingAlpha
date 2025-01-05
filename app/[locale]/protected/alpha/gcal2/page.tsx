@@ -6,6 +6,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { createClient } from "@/utils/supabase/client";
 import CalendarScheduler from "@/components/Cal";
+import { redirect } from "next/navigation";
 import { Session, User } from "@supabase/supabase-js";
 import { CalendarEvent } from "@/types/calendar";
 
