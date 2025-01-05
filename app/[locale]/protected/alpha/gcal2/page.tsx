@@ -294,7 +294,7 @@ const App: React.FC = () => {
           </div>
           <div className="w-full">
             <div className="mt-4 bg-gray-200 p-4 rounded text-sm text-black overflow-auto">
-              <h3 className="text-lg font-bold mb-2">Today's Events</h3>
+              <h3 className="text-lg font-bold mb-2">Today&apos;s Events</h3>
               {events.length === 0 ? (
                 <p className="text-gray-600">No events found for today.</p>
               ) : (
