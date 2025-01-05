@@ -9,8 +9,15 @@ import CalendarScheduler from "@/components/Cal";
 import { Session, User } from "@supabase/supabase-js";
 import { CalendarEvent } from "@/types/calendar";
 
-const supabase = createClient();
+const supabase = await createClient();
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return redirect(`/${locale}/sign-in`);
+  }
 
 
 const App: React.FC = () => {
