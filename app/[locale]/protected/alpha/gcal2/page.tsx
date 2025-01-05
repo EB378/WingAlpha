@@ -289,7 +289,7 @@ const App: React.FC = () => {
           >
             Sign Out
           </button>
-          <div className="w-full">
+          <div className=" w-scren">
             <button
               onClick={fetchTodaysEvents}
               className="w-full p-2 bg-green-500 text-white rounded-md hover:bg-green-600"
