@@ -80,12 +80,90 @@ const CalendarScheduler: React.FC<CalendarSchedulerProps> = ({ events: externalE
   
 
   const handleEventAdd = async ({ event }: { event: { title: string; start: Date | null; end: Date | null } }) => {
-    // Same as before...
+    if (!session || !session.provider_token) {
+      alert("You must be logged in to create an event.");
+      return;
+    }
+  
+    if (!event.start || !event.end) {
+      console.error("Event start or end time is missing.");
+      return;
+    }
+  
+    const newEvent = {
+      summary: event.title,
+      start: { dateTime: event.start.toISOString() },
+      end: { dateTime: event.end.toISOString() },
+    };
+  
+    try {
+      const response = await fetch(
+        "https://www.googleapis.com/calendar/v3/calendars/primary/events",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session.provider_token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newEvent),
+        }
+      );
+  
+      const data = await response.json();
+      if (!response.ok) {
+        console.error("Error adding event:", data);
+      } else {
+        alert("Event added successfully!");
+        fetchEvents(); // Refresh events after adding
+      }
+    } catch (error) {
+      console.error("Error adding event:", error);
+    }
   };
+  
 
   const handleEventChange = async ({ event }: { event: { id: string; title: string; start: Date | null; end: Date | null } }) => {
-    // Same as before...
+    if (!session || !session.provider_token) {
+      alert("You must be logged in to update an event.");
+      return;
+    }
+  
+    if (!event.start || !event.end) {
+      console.error("Event start or end time is missing.");
+      return;
+    }
+  
+    const updatedEvent = {
+      summary: event.title,
+      start: { dateTime: event.start.toISOString() },
+      end: { dateTime: event.end.toISOString() },
+    };
+  
+    try {
+      const response = await fetch(
+        `https://www.googleapis.com/calendar/v3/calendars/primary/events/${event.id}`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${session.provider_token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updatedEvent),
+        }
+      );
+  
+      const data = await response.json();
+      if (!response.ok) {
+        console.error("Error updating event:", data);
+      } else {
+        alert("Event updated successfully!");
+        fetchEvents(); // Refresh events after updating
+      }
+    } catch (error) {
+      console.error("Error updating event:", error);
+    }
   };
+  
 
   useEffect(() => {
     if (session && !externalEvents) {
