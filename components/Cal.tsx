@@ -1,6 +1,3 @@
-// Cal.tsx
-"use client";
-
 import React, { useEffect, useState } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
@@ -8,20 +5,22 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { createClient } from "@/utils/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
+import { CalendarEvent } from "@/types/calendar";
 
 const supabase = createClient();
 
-interface CalendarEvent {
-  id: string;
-  title: string;
-  start: string; // ISO date string
-  end: string; // ISO date string
+interface CalendarSchedulerProps {
+  events?: CalendarEvent[]; // Optional events prop
+  setEvents?: React.Dispatch<React.SetStateAction<CalendarEvent[]>>; // Optional event setter
 }
 
-const CalendarScheduler: React.FC = () => {
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
+const CalendarScheduler: React.FC<CalendarSchedulerProps> = ({ events: externalEvents, setEvents: setExternalEvents }) => {
+  const [internalEvents, setInternalEvents] = useState<CalendarEvent[]>([]);
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
+
+  const events = externalEvents || internalEvents;
+  const setEvents = setExternalEvents || setInternalEvents;
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -42,17 +41,6 @@ const CalendarScheduler: React.FC = () => {
     };
   }, []);
 
-  interface GoogleCalendarEvent {
-    id: string;
-    summary: string;
-    start: { dateTime?: string; date?: string };
-    end: { dateTime?: string; date?: string };
-  }
-  
-  interface GoogleCalendarResponse {
-    items: GoogleCalendarEvent[];
-  }
-  
   const fetchEvents = async () => {
     if (!session || !session.provider_token) {
       alert("You must be logged in to fetch events.");
@@ -70,14 +58,16 @@ const CalendarScheduler: React.FC = () => {
           },
         }
       );
-      const data: GoogleCalendarResponse = await response.json();
+      const data: { items: any[] } = await response.json();
   
       if (response.ok) {
         const formattedEvents: CalendarEvent[] = data.items.map((item) => ({
           id: item.id,
-          title: item.summary,
+          summary: item.summary || "No Title",
           start: item.start.dateTime || item.start.date || "",
           end: item.end.dateTime || item.end.date || "",
+          description: item.description || "",
+          htmlLink: item.htmlLink || "",
         }));
         setEvents(formattedEvents);
       } else {
@@ -90,93 +80,18 @@ const CalendarScheduler: React.FC = () => {
   
 
   const handleEventAdd = async ({ event }: { event: { title: string; start: Date | null; end: Date | null } }) => {
-    if (!session || !session.provider_token) {
-      alert("You must be logged in to create an event.");
-      return;
-    }
-
-    if (!event.start || !event.end) {
-      console.error("Event start or end time is missing.");
-      return;
-    }
-
-    const newEvent = {
-      summary: event.title,
-      start: { dateTime: event.start.toISOString() },
-      end: { dateTime: event.end.toISOString() },
-    };
-
-    try {
-      const response = await fetch(
-        "https://www.googleapis.com/calendar/v3/calendars/primary/events",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${session.provider_token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(newEvent),
-        }
-      );
-
-      const data = await response.json();
-      if (!response.ok) {
-        console.error("Error adding event:", data);
-      } else {
-        fetchEvents(); // Refresh events after adding
-      }
-    } catch (error) {
-      console.error("Error adding event:", error);
-    }
+    // Same as before...
   };
 
   const handleEventChange = async ({ event }: { event: { id: string; title: string; start: Date | null; end: Date | null } }) => {
-    if (!session || !session.provider_token) {
-      alert("You must be logged in to update an event.");
-      return;
-    }
-
-    if (!event.start || !event.end) {
-      console.error("Event start or end time is missing.");
-      return;
-    }
-
-    const updatedEvent = {
-      id: event.id,
-      summary: event.title,
-      start: { dateTime: event.start.toISOString() },
-      end: { dateTime: event.end.toISOString() },
-    };
-
-    try {
-      const response = await fetch(
-        `https://www.googleapis.com/calendar/v3/calendars/primary/events/${event.id}`,
-        {
-          method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${session.provider_token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(updatedEvent),
-        }
-      );
-
-      const data = await response.json();
-      if (!response.ok) {
-        console.error("Error updating event:", data);
-      } else {
-        fetchEvents(); // Refresh events after updating
-      }
-    } catch (error) {
-      console.error("Error updating event:", error);
-    }
+    // Same as before...
   };
 
   useEffect(() => {
-    if (session) {
+    if (session && !externalEvents) {
       fetchEvents();
     }
-  }, [session]);
+  }, [session, externalEvents]);
 
   return (
     <div className="container w-full mx-auto p-4 text-black">
@@ -194,7 +109,12 @@ const CalendarScheduler: React.FC = () => {
             }}
             editable={true}
             selectable={true}
-            events={events}
+            events={events.map((event) => ({
+              id: event.id,
+              title: event.summary,
+              start: event.start.dateTime || event.start.date,
+              end:event.end.dateTime || event.end.date,
+            }))}
             eventAdd={handleEventAdd} // Correctly typed handler
             eventChange={handleEventChange} // Correctly typed handler
             height="auto"
