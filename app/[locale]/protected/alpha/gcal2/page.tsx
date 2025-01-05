@@ -9,15 +9,7 @@ import CalendarScheduler from "@/components/Cal";
 import { Session, User } from "@supabase/supabase-js";
 import { CalendarEvent } from "@/types/calendar";
 
-const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return redirect(`/${locale}/sign-in`);
-  }
+const supabase = createClient();
 
 
 const App: React.FC = () => {
@@ -31,7 +23,19 @@ const App: React.FC = () => {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
 
 
+  const authenticateUser = async () => {
+    const { data } = await supabase.auth.getUser();
+
+    if (!data.user) {
+      redirect("/sign-in"); // Replace `/sign-in` with your actual sign-in page
+    }
+
+    setUser(data.user);
+  };
+
   useEffect(() => {
+    authenticateUser();
+    
     const fetchSession = async () => {
       const { data } = await supabase.auth.getSession();
       setSession(data.session);
