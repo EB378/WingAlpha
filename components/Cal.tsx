@@ -192,7 +192,7 @@ const CalendarScheduler: React.FC<CalendarSchedulerProps> = ({ events: externalE
   }, [session, externalEvents]);
 
   return (
-    <div className="container w-full mx-auto p-4 text-black">
+    <div className="container w-screen mx-auto p-4 text-black">
       <h1 className="text-2xl font-bold mb-4">Google Calendar Scheduler</h1>
       {user ? (
         <div>
