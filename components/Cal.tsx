@@ -13,6 +13,19 @@ interface CalendarSchedulerProps {
   events?: CalendarEvent[]; // Optional events prop
   setEvents?: React.Dispatch<React.SetStateAction<CalendarEvent[]>>; // Optional event setter
 }
+interface GoogleCalendarEvent {
+  id: string;
+  summary?: string;
+  start: { dateTime?: string; date?: string };
+  end: { dateTime?: string; date?: string };
+  description?: string;
+  htmlLink?: string;
+}
+
+interface GoogleCalendarResponse {
+  items: GoogleCalendarEvent[];
+}
+
 
 const CalendarScheduler: React.FC<CalendarSchedulerProps> = ({ events: externalEvents, setEvents: setExternalEvents }) => {
   const [internalEvents, setInternalEvents] = useState<CalendarEvent[]>([]);
@@ -58,14 +71,20 @@ const CalendarScheduler: React.FC<CalendarSchedulerProps> = ({ events: externalE
           },
         }
       );
-      const data: { items: any[] } = await response.json();
+      const data: GoogleCalendarResponse = await response.json();
   
       if (response.ok) {
         const formattedEvents: CalendarEvent[] = data.items.map((item) => ({
           id: item.id,
           summary: item.summary || "No Title",
-          start: item.start.dateTime || item.start.date || "",
-          end: item.end.dateTime || item.end.date || "",
+          start: {
+            dateTime: item.start.dateTime,
+            date: item.start.date,
+          },
+          end: {
+            dateTime: item.end.dateTime,
+            date: item.end.date,
+          },
           description: item.description || "",
           htmlLink: item.htmlLink || "",
         }));
@@ -77,6 +96,7 @@ const CalendarScheduler: React.FC<CalendarSchedulerProps> = ({ events: externalE
       console.error("Error fetching events:", error);
     }
   };
+   
   
 
   const handleEventAdd = async ({ event }: { event: { title: string; start: Date | null; end: Date | null } }) => {
