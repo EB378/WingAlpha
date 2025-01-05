@@ -7,15 +7,10 @@ import "react-datepicker/dist/react-datepicker.css";
 import { createClient } from "@/utils/supabase/client";
 import CalendarScheduler from "@/components/Cal";
 import { Session, User } from "@supabase/supabase-js";
+import { CalendarEvent } from "@/types/calendar";
 
 const supabase = createClient();
 
-interface CalendarEvent {
-  id: string;
-  title: string;
-  start: string; // ISO string for start date
-  end: string; // ISO string for end date
-}
 
 
 const App: React.FC = () => {
@@ -239,11 +234,56 @@ const App: React.FC = () => {
             >
               Fetch Today&apos;s Events
             </button>
-            <CalendarScheduler/>
+            <CalendarScheduler events={events} setEvents={setEvents} />;
             <pre className="mt-4 bg-gray-200 p-2 rounded text-sm text-black overflow-auto">
               {JSON.stringify(events, null, 2)}
             </pre>
           </div>
+          <div className="w-full">
+            <button
+              onClick={fetchTodaysEvents}
+              className="w-full p-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+            >
+              Fetch Today&apos;s Events
+            </button>
+            <CalendarScheduler events={events} setEvents={setEvents} />;
+            <div className="mt-4 bg-gray-200 p-4 rounded text-sm text-black overflow-auto">
+              <h3 className="text-lg font-bold mb-2">Today's Events</h3>
+              {events.length === 0 ? (
+                <p className="text-gray-600">No events found for today.</p>
+              ) : (
+                <ul className="space-y-4">
+                  {events.map((event) => (
+                    <li
+                      key={event.id}
+                      className="border border-gray-300 rounded p-3 bg-white shadow-md"
+                    >
+                      <h4 className="text-md font-bold text-gray-800">
+                        {event.summary}
+                      </h4>
+                      <p className="text-gray-600">
+                        {new Date(event.start.dateTime || event.start.date || "").toLocaleString()} -{" "}
+                        {new Date(event.end.dateTime || event.end.date || "").toLocaleString()}
+                      </p>
+
+                      {event.description && (
+                        <p className="text-gray-600">{event.description}</p>
+                      )}
+                      <a
+                        href={event.htmlLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 hover:underline text-sm"
+                      >
+                        View in Google Calendar
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+
         </div>
       ) : (
         <button
