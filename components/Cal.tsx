@@ -1,247 +1,229 @@
-import React, { useEffect, useState } from "react";
+"use client";
+
+import React, { useState, useEffect, useCallback } from "react";
+import { format, parseISO } from "date-fns";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import { createClient } from "@/utils/supabase/client";
-import { User, Session } from "@supabase/supabase-js";
-import { CalendarEvent } from "@/types/calendar";
 
-const supabase = createClient();
-
-interface CalendarSchedulerProps {
-  events?: CalendarEvent[]; // Optional events prop
-  setEvents?: React.Dispatch<React.SetStateAction<CalendarEvent[]>>; // Optional event setter
-}
-interface GoogleCalendarEvent {
+interface Event {
   id: string;
-  summary?: string;
-  start: { dateTime?: string; date?: string };
-  end: { dateTime?: string; date?: string };
-  description?: string;
-  htmlLink?: string;
+  title: string;
+  details: string;
+  starttime: string; // ISO string
+  endtime: string; // ISO string
+  userid: string; // User ID
 }
 
-interface GoogleCalendarResponse {
-  items: GoogleCalendarEvent[];
-}
+const Cal: React.FC = () => {
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [Bookings, setBookings] = useState<Event[]>([]);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [newBookingTitle, setNewBookingTitle] = useState<string>("");
+  const [starttime, setStarttime] = useState<string>("");
+  const [endtime, setEndtime] = useState<string>("");
+  const loggedInUser = "00000000-0000-0000-0000-000000000000"; // Mock User ID
 
+  const timeSlots = Array.from({ length: 24 }, (_, i) =>
+    `${i.toString().padStart(2, "0")}:00`
+  );
 
-const CalendarScheduler: React.FC<CalendarSchedulerProps> = ({ events: externalEvents, setEvents: setExternalEvents }) => {
-  const [internalEvents, setInternalEvents] = useState<CalendarEvent[]>([]);
-  const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<User | null>(null);
+  // Fetch Bookings from the server
+  const fetchBookings = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/Bookings?date=${format(selectedDate, "yyyy-MM-dd")}`);
+      if (!response.ok) throw new Error("Failed to fetch Bookings");
+      const data: Event[] = await response.json();
+      setBookings(data);
+    } catch (error) {
+      console.error("Error fetching Bookings:", error);
+    }
+  }, [selectedDate]);
 
-  const events = externalEvents || internalEvents;
-  const setEvents = setExternalEvents || setInternalEvents;
-
-  useEffect(() => {
-    const fetchSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      setSession(data.session);
-      setUser(data.session?.user || null);
-    };
-
-    fetchSession();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user || null);
+  // Handle event selection for new bookings
+  const handleDateSelect = (selection: { start: Date; end: Date }) => {
+    const starttimeValue = selection.start.toISOString();
+    const endtimeValue = selection.end.toISOString();
+    setStarttime(starttimeValue);
+    setEndtime(endtimeValue);
+    setSelectedEvent({
+      id: "0",
+      title: "",
+      details: "",
+      starttime: starttimeValue,
+      endtime: endtimeValue,
+      userid: loggedInUser,
     });
+    setNewBookingTitle("");
+  };
 
-    return () => {
-      authListener?.subscription.unsubscribe();
-    };
-  }, []);
-
-  const fetchEvents = async () => {
-    if (!session || !session.provider_token) {
-      alert("You must be logged in to fetch events.");
-      return;
-    }
-  
-    try {
-      const response = await fetch(
-        "https://www.googleapis.com/calendar/v3/calendars/primary/events?singleEvents=true&orderBy=startTime",
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${session.provider_token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      const data: GoogleCalendarResponse = await response.json();
-  
-      if (response.ok) {
-        const formattedEvents: CalendarEvent[] = data.items.map((item) => ({
-          id: item.id,
-          summary: item.summary || "No Title",
-          start: {
-            dateTime: item.start.dateTime,
-            date: item.start.date,
-          },
-          end: {
-            dateTime: item.end.dateTime,
-            date: item.end.date,
-          },
-          description: item.description || "",
-          htmlLink: item.htmlLink || "",
-        }));
-        setEvents(formattedEvents);
-      } else {
-        console.error("Error fetching events:", data);
-      }
-    } catch (error) {
-      console.error("Error fetching events:", error);
+  // Handle event click for editing
+  const handleEventClick = (info: any) => {
+    const event = Bookings.find((b) => b.id === info.event.id);
+    if (event) {
+      setSelectedEvent(event);
+      setNewBookingTitle(event.title);
+      setStarttime(event.starttime);
+      setEndtime(event.endtime);
     }
   };
-   
-  
 
-  const handleEventAdd = async ({ event }: { event: { title: string; start: Date | null; end: Date | null } }) => {
-    if (!session || !session.provider_token) {
-      alert("You must be logged in to create an event.");
-      return;
-    }
-  
-    if (!event.start || !event.end) {
-      console.error("Event start or end time is missing.");
-      return;
-    }
-  
-    const newEvent = {
-      summary: event.title,
-      start: { dateTime: event.start.toISOString() },
-      end: { dateTime: event.end.toISOString() },
-    };
-  
+ // Save a new or updated booking
+ const handleSaveBooking = async () => {
+    if (!selectedEvent || !newBookingTitle) return;
+
+    const method = selectedEvent.id === "0" ? "POST" : "PUT";
+    const endpoint = selectedEvent.id === "0" ? `/api/bookings` : `/api/bookings/${selectedEvent.id}`;
+
     try {
-      const response = await fetch(
-        "https://www.googleapis.com/calendar/v3/calendars/primary/events",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${session.provider_token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(newEvent),
-        }
-      );
-  
-      const data = await response.json();
+      const response = await fetch(endpoint, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...selectedEvent,
+          title: newBookingTitle,
+          starttime,
+          endtime,
+        }),
+      });
+
       if (!response.ok) {
-        console.error("Error adding event:", data);
-      } else {
-        alert("Event added successfully!");
-        fetchEvents(); // Refresh events after adding
+        const data = await response.json();
+        alert(data.error || "Failed to save booking.");
+        return;
       }
-    } catch (error) {
-      console.error("Error adding event:", error);
-    }
-  };
-  
 
-  const handleEventChange = async ({ event }: { event: { id: string; title: string; start: Date | null; end: Date | null } }) => {
-    if (!session || !session.provider_token) {
-      alert("You must be logged in to update an event.");
-      return;
-    }
-  
-    if (!event.start || !event.end) {
-      console.error("Event start or end time is missing.");
-      return;
-    }
-  
-    const updatedEvent = {
-      summary: event.title,
-      start: { dateTime: event.start.toISOString() },
-      end: { dateTime: event.end.toISOString() },
-    };
-  
-    try {
-      const response = await fetch(
-        `https://www.googleapis.com/calendar/v3/calendars/primary/events/${event.id}`,
-        {
-          method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${session.provider_token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(updatedEvent),
-        }
-      );
-  
-      const data = await response.json();
-      if (!response.ok) {
-        console.error("Error updating event:", data);
-      } else {
-        alert("Event updated successfully!");
-        fetchEvents(); // Refresh events after updating
-      }
+      setSelectedEvent(null);
+      setNewBookingTitle("");
+      fetchBookings();
     } catch (error) {
-      console.error("Error updating event:", error);
+      console.error("Error saving booking:", error);
     }
   };
-  
+
+  // Delete a booking
+  const handleDeleteBooking = async () => {
+    if (!selectedEvent || !selectedEvent.id) return;
+
+    try {
+      const response = await fetch(`/api/bookings/${selectedEvent.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        alert(data.error || "Failed to delete booking.");
+        return;
+      }
+
+      setSelectedEvent(null);
+      setNewBookingTitle("");
+      fetchBookings();
+    } catch (error) {
+      console.error("Error deleting booking:", error);
+    }
+  };
+
 
   useEffect(() => {
-    if (session && !externalEvents) {
-      fetchEvents();
-    }
-  }, [session, externalEvents]);
+    fetchBookings();
+  }, [fetchBookings]);
 
   return (
-    <div className="container w-screen mx-auto p-4 text-black">
-      <h1 className="text-2xl font-bold mb-4">Google Calendar Scheduler</h1>
-      {user ? (
-        <div>
-          <h2>Welcome, {user.email}</h2>
-          <FullCalendar
-            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-            initialView="dayGridMonth"
-            headerToolbar={{
-              left: "prev,next today",
-              center: "title",
-              right: "dayGridMonth,timeGridWeek,timeGridDay",
-            }}
-            editable={true}
-            selectable={true}
-            events={events.map((event) => ({
-              id: event.id,
-              title: event.summary,
-              start: event.start.dateTime || event.start.date,
-              end:event.end.dateTime || event.end.date,
-            }))}
-            eventAdd={handleEventAdd} // Correctly typed handler
-            eventChange={handleEventChange} // Correctly typed handler
-            height="auto"
-          />
-          <button
-            onClick={() => supabase.auth.signOut()}
-            className="mt-4 p-2 bg-red-500 text-white rounded"
-          >
-            Sign Out
-          </button>
+    <div className="relative w-screen text-black p-6 bg-gray-100">
+      <h1 className="text-4xl font-bold mb-6 text-center">Bookings Scheduler</h1>
+      <pre className="text-xs font-mono p-3 rounded border max-h-32 overflow-auto text-black">
+              {JSON.stringify(Bookings, null, 2)}
+          </pre>
+
+      <FullCalendar
+        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+        initialView="dayGridMonth"
+        headerToolbar={{
+          left: "prev,next today",
+          center: "title",
+          right: "dayGridMonth,timeGridWeek,timeGridDay",
+        }}
+        editable={true}
+        selectable={true}
+        events={Bookings.map((event) => ({
+          id: event.id,
+          title: event.title,
+          start: event.starttime,
+          end: event.endtime
+        }))}
+        eventClick={handleEventClick}
+        //eventAdd={handleBookingAdd}
+        //eventChange={handleBookingChange}
+        height="auto"
+      />
+
+      {/* Booking Modal */}
+      {selectedEvent && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg max-w-md w-full shadow-lg">
+            <h2 className="text-xl font-bold mb-4 text-black">
+              {selectedEvent.id ? "Edit Booking" : "New Booking"}
+            </h2>
+            <label className="block mb-2 font-medium text-black">Title</label>
+            <input
+              type="text"
+              className="w-full p-2 border border-gray-300 bg-white rounded-md mb-4"
+              value={newBookingTitle}
+              onChange={(e) => setNewBookingTitle(e.target.value)}
+            />
+            <label className="block mb-2 font-medium text-black">Details</label>
+            <textarea
+              className="w-full p-2 border border-gray-300 bg-white rounded-md mb-4"
+              value={selectedEvent.details}
+              onChange={(e) =>
+                setSelectedEvent((prev) =>
+                  prev ? { ...prev, details: e.target.value } : null
+                )
+              }
+            />
+            <label className="block mb-2 font-medium text-black">Start Time</label>
+            <input
+              type="datetime-local"
+              className="w-full p-2 border border-gray-300 bg-white rounded-md mb-4"
+              value={parseISO(starttime).toISOString().slice(0, -8)}
+              onChange={(e) => setStarttime(e.target.value + ":00Z")}
+            />
+            <label className="block mb-2 font-medium text-black">End Time</label>
+            <input
+              type="datetime-local"
+              className="w-full p-2 border border-gray-300 bg-white rounded-md mb-4"
+              value={parseISO(endtime).toISOString().slice(0, -8)}
+              onChange={(e) => setEndtime(e.target.value + ":00Z")}
+            />
+            <div className="flex justify-between">
+              <button
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
+                onClick={handleSaveBooking}
+              >
+                Save
+              </button>
+              {selectedEvent.id !== "0" && (
+                <button
+                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"
+                  onClick={handleDeleteBooking}
+                >
+                  Delete
+                </button>
+              )}
+              <button
+                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md"
+                onClick={() => setSelectedEvent(null)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
         </div>
-      ) : (
-        <button
-          onClick={() =>
-            supabase.auth.signInWithOAuth({
-              provider: "google",
-              options: {
-                scopes: "https://www.googleapis.com/auth/calendar",
-                redirectTo: `${window.location.origin}/auth/callback`,
-              },
-            })
-          }
-          className="p-2 bg-blue-500 text-white rounded"
-        >
-          Sign In with Google
-        </button>
       )}
     </div>
   );
 };
 
-export default CalendarScheduler;
+export default Cal;
