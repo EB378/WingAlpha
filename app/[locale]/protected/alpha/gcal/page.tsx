@@ -1,7 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import React from 'react';
-import Cal from "@/components/test1";
+import Cal from "@/components/Cal";
 
 export default async function ProtectedPage({
     params,
