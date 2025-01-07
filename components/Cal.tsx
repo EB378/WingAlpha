@@ -7,6 +7,7 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { createClient } from "@/utils/supabase/client";
+import { EventClickArg } from "@fullcalendar/core";
 
 interface Event {
   id: string;
@@ -21,7 +22,7 @@ const supabase = createClient();
 
 const Cal: React.FC = () => {
   const [loggedInUser, setLoggedInUser] = useState<string | null>(null);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate,] = useState(new Date());
   const [Bookings, setBookings] = useState<Event[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [newBookingTitle, setNewBookingTitle] = useState<string>("");
@@ -67,7 +68,7 @@ const Cal: React.FC = () => {
   };
 
   // Handle event click for editing
-  const handleEventClick = (info: any) => {
+  const handleEventClick = (info: EventClickArg) => {
     const event = Bookings.find((b) => b.id === info.event.id);
     if (event) {
       setSelectedEvent(event);
@@ -135,6 +136,7 @@ const Cal: React.FC = () => {
 
 
   useEffect(() => {
+    fetchLoggedInUser();
     fetchBookings();
   }, [fetchBookings]);
 
@@ -162,8 +164,7 @@ const Cal: React.FC = () => {
           end: event.endtime
         }))}
         eventClick={handleEventClick}
-        //eventAdd={handleBookingAdd}
-        //eventChange={handleBookingChange}
+        select={handleDateSelect}
         height="auto"
       />
 
