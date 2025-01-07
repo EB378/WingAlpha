@@ -65,7 +65,7 @@ const Navbar = ({
             {t("contact")}
           </Link>
           <Link
-            href={`/${currentLocale}/booking`}
+            href={`/${currentLocale}/protected/alpha/gcal`}
             className="text-lg font-bold hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r from-blue-400 to-white transition-transform transform hover:scale-110"
           >
             {t("bookFlight")}
@@ -113,7 +113,7 @@ const Navbar = ({
             {t("contact")}
           </Link>
           <Link
-            href={`/${currentLocale}/booking`}
+            href={`/${currentLocale}/protected/alpha/gcal`}
             className="block text-lg font-bold hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r from-blue-400 to-white"
             onClick={() => setIsMobileMenuOpen(false)}
           >
