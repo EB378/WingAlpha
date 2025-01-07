@@ -6,6 +6,7 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
+import { createClient } from "@/utils/supabase/client";
 
 interface Event {
   id: string;
@@ -16,14 +17,25 @@ interface Event {
   userid: string; // User ID
 }
 
+const supabase = createClient();
+
 const Cal: React.FC = () => {
+  const [loggedInUser, setLoggedInUser] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [Bookings, setBookings] = useState<Event[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [newBookingTitle, setNewBookingTitle] = useState<string>("");
   const [starttime, setStarttime] = useState<string>("");
   const [endtime, setEndtime] = useState<string>("");
-  const loggedInUser = "00000000-0000-0000-0000-000000000000"; // Mock User ID
+  // Fetch the currently logged-in user
+  const fetchLoggedInUser = async () => {
+    const { data, error } = await supabase.auth.getSession();
+    if (error) {
+      console.error("Error fetching session:", error.message);
+      return;
+    }
+    setLoggedInUser(data.session?.user?.id || null);
+  };
 
   // Fetch Bookings from the server
   const fetchBookings = useCallback(async () => {
@@ -49,7 +61,7 @@ const Cal: React.FC = () => {
       details: "",
       starttime: starttimeValue,
       endtime: endtimeValue,
-      userid: loggedInUser,
+      userid: loggedInUser || "Unknown User", // Use fetched user ID
     });
     setNewBookingTitle("");
   };
