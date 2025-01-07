@@ -25,10 +25,6 @@ const Cal: React.FC = () => {
   const [endtime, setEndtime] = useState<string>("");
   const loggedInUser = "00000000-0000-0000-0000-000000000000"; // Mock User ID
 
-  const timeSlots = Array.from({ length: 24 }, (_, i) =>
-    `${i.toString().padStart(2, "0")}:00`
-  );
-
   // Fetch Bookings from the server
   const fetchBookings = useCallback(async () => {
     try {
