@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
-export async function PUT(req: Request, context: { params: { id: string } }) {
+export async function PUT(req: Request, { params }: { params: Record<string, string> }) {
   try {
     const supabase = createClient();
-    const id = context.params.id;
+    const id = params.id;
 
     if (!id || isNaN(Number(id))) {
       return NextResponse.json({ error: "Invalid Booking ID format." }, { status: 400 });
@@ -19,7 +19,7 @@ export async function PUT(req: Request, context: { params: { id: string } }) {
       );
     }
 
-    const { error } = await (await supabase)
+    const { error } = await supabase
       .from("bookings")
       .update({ title, details, starttime, endtime, User })
       .eq("id", parseInt(id, 10));
@@ -36,16 +36,16 @@ export async function PUT(req: Request, context: { params: { id: string } }) {
   }
 }
 
-export async function DELETE(req: Request, context: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Record<string, string> }) {
   try {
     const supabase = createClient();
-    const id = context.params.id;
+    const id = params.id;
 
     if (!id || isNaN(Number(id))) {
       return NextResponse.json({ error: "Invalid Booking ID format." }, { status: 400 });
     }
 
-    const { error } = await (await supabase).from("bookings").delete().eq("id", parseInt(id, 10));
+    const { error } = await supabase.from("bookings").delete().eq("id", parseInt(id, 10));
 
     if (error) {
       console.error("Error deleting booking:", error.message);
