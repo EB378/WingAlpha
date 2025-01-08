@@ -2,10 +2,13 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { NextRequest } from "next/server";
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest) {
   try {
     const supabase = createClient();
-    const id = params.id;
+
+    // Extract the ID directly from the URL
+    const url = new URL(req.url);
+    const id = url.pathname.split("/").pop();
 
     if (!id || isNaN(Number(id))) {
       return NextResponse.json({ error: "Invalid Booking ID format." }, { status: 400 });
@@ -37,10 +40,13 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest) {
   try {
     const supabase = createClient();
-    const id = params.id;
+
+    // Extract the ID directly from the URL
+    const url = new URL(req.url);
+    const id = url.pathname.split("/").pop();
 
     if (!id || isNaN(Number(id))) {
       return NextResponse.json({ error: "Invalid Booking ID format." }, { status: 400 });
