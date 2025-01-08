@@ -23,7 +23,7 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    const { error } = await supabase
+    const { error } = await (await supabase)
       .from("bookings")
       .update({ title, details, starttime, endtime, User })
       .eq("id", parseInt(id, 10));
@@ -52,7 +52,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Invalid Booking ID format." }, { status: 400 });
     }
 
-    const { error } = await supabase.from("bookings").delete().eq("id", parseInt(id, 10));
+    const { error } = await (await supabase).from("bookings").delete().eq("id", parseInt(id, 10));
 
     if (error) {
       console.error("Error deleting booking:", error.message);
