@@ -20,8 +20,9 @@ export default async function ProtectedPage({
   if (!user) {
     return redirect(`/${locale}/sign-in`);
   }
-
-  return (
+  const { data: bookings } = await supabase.from("bookings").select();
+  
+    return (
     <div className="flex-1 w-screen flex flex-col gap-12 my-4">
       <div className="flex flex-col gap-2 items-start">
         <h2 className="font-bold text-2xl mb-4 px-14">Your user details</h2>
@@ -33,6 +34,7 @@ export default async function ProtectedPage({
         <Cal/>
 
 
+        <pre>{JSON.stringify(countries, null, 2)}</pre>
 
 
       </div>
