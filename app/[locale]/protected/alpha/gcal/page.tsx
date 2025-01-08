@@ -34,7 +34,7 @@ export default async function ProtectedPage({
         <Cal/>
 
 
-        <pre>{JSON.stringify(countries, null, 2)}</pre>
+        <pre>{JSON.stringify(bookings, null, 2)}</pre>
 
 
       </div>
