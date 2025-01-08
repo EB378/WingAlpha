@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: Request, context: { params: { id: string } }) {
   try {
     const supabase = createClient();
-    const id = params.id;
+    const id = context.params.id;
 
     if (!id || isNaN(Number(id))) {
       return NextResponse.json({ error: "Invalid Booking ID format." }, { status: 400 });
@@ -36,10 +36,10 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, context: { params: { id: string } }) {
   try {
     const supabase = createClient();
-    const id = params.id;
+    const id = context.params.id;
 
     if (!id || isNaN(Number(id))) {
       return NextResponse.json({ error: "Invalid Booking ID format." }, { status: 400 });
