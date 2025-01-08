@@ -170,7 +170,7 @@ const Cal: React.FC = () => {
 
       {/* Booking Modal */}
       {selectedEvent && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10">
           <div className="bg-white p-6 rounded-lg max-w-md w-full shadow-lg">
             <h2 className="text-xl font-bold mb-4 text-black">
               {selectedEvent.id ? "Edit Booking" : "New Booking"}
