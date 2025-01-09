@@ -1,14 +1,13 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
-import React from 'react';
+import React from "react";
 import Cal from "@/components/Cal";
 
 export default async function ProtectedPage({
-    params,
-  }: {
-    params: Promise<{ locale: string }>;
-  }) {
-
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
   const resolvedParams = await params;
   const { locale } = resolvedParams; // Resolve and extract locale
   const supabase = await createClient();
@@ -20,9 +19,20 @@ export default async function ProtectedPage({
   if (!user) {
     return redirect(`/${locale}/sign-in`);
   }
-  const { data: bookings } = await supabase.from("bookings").select();
-  
-    return (
+
+  const { data: bookings, error } = await supabase.from("bookings").select();
+
+  if (error) {
+    console.error("Error fetching bookings:", error.message);
+  }
+
+  // Provide fallback for email
+  const userForCal = {
+    id: user.id,
+    email: user.email || "", // Fallback to empty string if email is undefined
+  };
+
+  return (
     <div className="flex-1 w-screen flex flex-col gap-12 my-4">
       <div className="flex flex-col gap-2 items-start">
         <h2 className="font-bold text-2xl mb-4 px-14">Your user details</h2>
@@ -30,13 +40,8 @@ export default async function ProtectedPage({
           {JSON.stringify(user, null, 2)}
         </pre>
 
-
-        <Cal/>
-
-
-        <pre>{JSON.stringify(bookings, null, 2)}</pre>
-
-
+        {/* Pass the user and bookings data to the Cal component */}
+        <Cal user={userForCal} bookings={bookings || []} />
       </div>
     </div>
   );
