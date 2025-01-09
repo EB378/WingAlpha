@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
-import { format, parseISO } from "date-fns";
+import React, { useState } from "react";
+import { parseISO } from "date-fns";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import { createClient } from "@/utils/supabase/client";
 import { EventClickArg } from "@fullcalendar/core";
 
 interface Event {
@@ -15,40 +14,20 @@ interface Event {
   details: string;
   starttime: string; // ISO string
   endtime: string; // ISO string
-  userid: string; // User ID
+  User: string; // User ID
 }
 
-const supabase = createClient();
+interface CalProps {
+  user: { id: string; email: string }; // Logged-in user data
+  bookings: Event[]; // Bookings data from parent
+}
 
-const Cal: React.FC = () => {
-  const [loggedInUser, setLoggedInUser] = useState<string | null>(null);
-  const [selectedDate,] = useState(new Date());
-  const [Bookings, setBookings] = useState<Event[]>([]);
+const Cal: React.FC<CalProps> = ({ user, bookings: initialBookings }) => {
+  const [Bookings, setBookings] = useState<Event[]>(initialBookings);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [newBookingTitle, setNewBookingTitle] = useState<string>("");
   const [starttime, setStarttime] = useState<string>("");
   const [endtime, setEndtime] = useState<string>("");
-  // Fetch the currently logged-in user
-  const fetchLoggedInUser = async () => {
-    const { data, error } = await supabase.auth.getSession();
-    if (error) {
-      console.error("Error fetching session:", error.message);
-      return;
-    }
-    setLoggedInUser(data.session?.user?.id || null);
-  };
-
-  // Fetch Bookings from the server
-  const fetchBookings = useCallback(async () => {
-    try {
-      const response = await fetch(`/api/Bookings?date=${format(selectedDate, "yyyy-MM-dd")}`);
-      if (!response.ok) throw new Error("Failed to fetch Bookings");
-      const data: Event[] = await response.json();
-      setBookings(data);
-    } catch (error) {
-      console.error("Error fetching Bookings:", error);
-    }
-  }, [selectedDate]);
 
   // Handle event selection for new bookings
   const handleDateSelect = (selection: { start: Date; end: Date }) => {
@@ -62,7 +41,7 @@ const Cal: React.FC = () => {
       details: "",
       starttime: starttimeValue,
       endtime: endtimeValue,
-      userid: loggedInUser || "Unknown User", // Use fetched user ID
+      User: user.id, // Use the logged-in user's ID
     });
     setNewBookingTitle("");
   };
@@ -78,12 +57,15 @@ const Cal: React.FC = () => {
     }
   };
 
- // Save a new or updated booking
- const handleSaveBooking = async () => {
+  // Save a new or updated booking
+  const handleSaveBooking = async () => {
     if (!selectedEvent || !newBookingTitle) return;
 
     const method = selectedEvent.id === "0" ? "POST" : "PUT";
-    const endpoint = selectedEvent.id === "0" ? `/api/bookings` : `/api/bookings/${selectedEvent.id}`;
+    const endpoint =
+      selectedEvent.id === "0"
+        ? `/api/bookings`
+        : `/api/bookings/${selectedEvent.id}`;
 
     try {
       const response = await fetch(endpoint, {
@@ -105,7 +87,6 @@ const Cal: React.FC = () => {
 
       setSelectedEvent(null);
       setNewBookingTitle("");
-      fetchBookings();
     } catch (error) {
       console.error("Error saving booking:", error);
     }
@@ -128,26 +109,14 @@ const Cal: React.FC = () => {
 
       setSelectedEvent(null);
       setNewBookingTitle("");
-      fetchBookings();
     } catch (error) {
       console.error("Error deleting booking:", error);
     }
   };
 
-
-  useEffect(() => {
-    fetchLoggedInUser();
-    fetchBookings();
-  }, [fetchBookings]);
-
   return (
     <div className="relative w-screen text-black p-6 bg-gray-100">
       <h1 className="text-4xl font-bold mb-6 text-center">Bookings Scheduler</h1>
-      <pre>{JSON.stringify(Bookings, null, 2)}</pre>
-      <pre className="text-xs font-mono p-3 rounded border max-h-32 overflow-auto text-black">
-              {JSON.stringify(Bookings, null, 2)}
-          </pre>
-
       <FullCalendar
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
@@ -162,7 +131,7 @@ const Cal: React.FC = () => {
           id: event.id,
           title: event.title,
           start: event.starttime,
-          end: event.endtime
+          end: event.endtime,
         }))}
         eventClick={handleEventClick}
         select={handleDateSelect}
