@@ -143,6 +143,7 @@ const Cal: React.FC = () => {
   return (
     <div className="relative w-screen text-black p-6 bg-gray-100">
       <h1 className="text-4xl font-bold mb-6 text-center">Bookings Scheduler</h1>
+      <pre>{JSON.stringify(Bookings, null, 2)}</pre>
       <pre className="text-xs font-mono p-3 rounded border max-h-32 overflow-auto text-black">
               {JSON.stringify(Bookings, null, 2)}
           </pre>
