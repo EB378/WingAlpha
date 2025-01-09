@@ -23,7 +23,7 @@ interface CalProps {
 }
 
 const Cal: React.FC<CalProps> = ({ user, bookings: initialBookings }) => {
-  const [Bookings, setBookings] = useState<Event[]>(initialBookings);
+  const [Bookings] = useState<Event[]>(initialBookings);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [newBookingTitle, setNewBookingTitle] = useState<string>("");
   const [starttime, setStarttime] = useState<string>("");
