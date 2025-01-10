@@ -18,16 +18,17 @@ interface Event {
 }
 
 interface CalProps {
-  user: { id: string; email: string }; // Logged-in user data
-  bookings: Event[]; // Bookings data from parent
+  user: { id: string; email?: string };
+  bookings: Event[];
 }
 
-const Cal: React.FC<CalProps> = ({ user, bookings: initialBookings }) => {
-  const [Bookings] = useState<Event[]>(initialBookings);
+const Cal: React.FC<CalProps> = ({ user, bookings }) => {
+  const [localBookings, setLocalBookings] = useState<Event[]>(bookings);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [newBookingTitle, setNewBookingTitle] = useState<string>("");
   const [starttime, setStarttime] = useState<string>("");
   const [endtime, setEndtime] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
 
   // Handle event selection for new bookings
   const handleDateSelect = (selection: { start: Date; end: Date }) => {
@@ -48,75 +49,78 @@ const Cal: React.FC<CalProps> = ({ user, bookings: initialBookings }) => {
 
   // Handle event click for editing
   const handleEventClick = (info: EventClickArg) => {
-    const event = Bookings.find((b) => b.id === info.event.id);
-    if (event) {
-      setSelectedEvent(event);
-      setNewBookingTitle(event.title);
-      setStarttime(event.starttime);
-      setEndtime(event.endtime);
+    // Log the clicked event ID
+    console.log("Clicked event ID:", info.event.id);
+  
+    // Log all bookings for comparison
+    console.log("Current bookings state:", bookings);
+  
+    // Find the clicked event in the bookings array
+
+    const clickedEvent = bookings.find((b) => String(b.id) === String(info.event.id)); // Match event by ID
+
+  
+    if (clickedEvent) {
+      // Event found, set it for editing
+      setSelectedEvent(clickedEvent);
+      setNewBookingTitle(clickedEvent.title);
+      setStarttime(clickedEvent.starttime);
+      setEndtime(clickedEvent.endtime);
+    } else {
+      // Event not found, log error
+      console.error(`Error: Event not found. Event ID: ${info.event.id}`);
+      alert("Error: The selected event could not be found. Please try again.");
     }
   };
+  
+  
 
   // Save a new or updated booking
   const handleSaveBooking = async () => {
     if (!selectedEvent || !newBookingTitle) return;
 
-    const method = selectedEvent.id === "0" ? "POST" : "PUT";
-    const endpoint =
-      selectedEvent.id === "0"
-        ? `/api/bookings`
-        : `/api/bookings/${selectedEvent.id}`;
-
-    try {
-      const response = await fetch(endpoint, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...selectedEvent,
-          title: newBookingTitle,
-          starttime,
-          endtime,
-        }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        alert(data.error || "Failed to save booking.");
-        return;
-      }
-
-      setSelectedEvent(null);
-      setNewBookingTitle("");
-    } catch (error) {
-      console.error("Error saving booking:", error);
+    if (selectedEvent.id === "0") {
+      // Add a new booking
+      const newEvent: Event = {
+        id: Math.random().toString(36).substr(2, 9), // Generate a temporary ID
+        title: newBookingTitle,
+        details: selectedEvent.details,
+        starttime,
+        endtime,
+        User: user.id,
+      };
+      setLocalBookings([...localBookings, newEvent]);
+    } else {
+      // Update an existing booking
+      setLocalBookings(
+        localBookings.map((b) =>
+          b.id === selectedEvent.id
+            ? { ...b, title: newBookingTitle, starttime, endtime, details: selectedEvent.details }
+            : b
+        )
+      );
     }
+
+    setSelectedEvent(null);
+    setNewBookingTitle("");
   };
 
   // Delete a booking
-  const handleDeleteBooking = async () => {
+  const handleDeleteBooking = () => {
     if (!selectedEvent || !selectedEvent.id) return;
 
-    try {
-      const response = await fetch(`/api/bookings/${selectedEvent.id}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        alert(data.error || "Failed to delete booking.");
-        return;
-      }
-
-      setSelectedEvent(null);
-      setNewBookingTitle("");
-    } catch (error) {
-      console.error("Error deleting booking:", error);
-    }
+    setLocalBookings(localBookings.filter((b) => b.id !== selectedEvent.id));
+    setSelectedEvent(null);
   };
 
   return (
     <div className="relative w-screen text-black p-6 bg-gray-100">
       <h1 className="text-4xl font-bold mb-6 text-center">Bookings Scheduler</h1>
+      {error && (
+        <div className="text-red-500 text-center mb-4">
+          <p>{error}</p>
+        </div>
+      )}
       <FullCalendar
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
@@ -127,23 +131,29 @@ const Cal: React.FC<CalProps> = ({ user, bookings: initialBookings }) => {
         }}
         editable={true}
         selectable={true}
-        events={Bookings.map((event) => ({
+        events={localBookings.map((event) => {
+          console.log("Event in calendar:", event.id);
+          return {
           id: event.id,
           title: event.title,
           start: event.starttime,
           end: event.endtime,
-        }))}
+        };
+        })}
         eventClick={handleEventClick}
         select={handleDateSelect}
         height="auto"
       />
+      <pre className="text-xs font-mono p-3 rounded border px-14 max-h-32 overflow-auto">
+          {JSON.stringify(bookings, null, 2)}
+        </pre>
 
       {/* Booking Modal */}
       {selectedEvent && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10">
           <div className="bg-white p-6 rounded-lg max-w-md w-full shadow-lg">
             <h2 className="text-xl font-bold mb-4 text-black">
-              {selectedEvent.id ? "Edit Booking" : "New Booking"}
+              {selectedEvent.id === "0" ? "New Booking" : "Edit Booking"}
             </h2>
             <label className="block mb-2 font-medium text-black">Title</label>
             <input
