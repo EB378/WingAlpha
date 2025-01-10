@@ -28,7 +28,7 @@ const Cal: React.FC<CalProps> = ({ user, bookings }) => {
   const [newBookingTitle, setNewBookingTitle] = useState<string>("");
   const [starttime, setStarttime] = useState<string>("");
   const [endtime, setEndtime] = useState<string>("");
-  const [error, setError] = useState<string | null>(null);
+  const [error] = useState<string | null>(null);
 
   // Handle event selection for new bookings
   const handleDateSelect = (selection: { start: Date; end: Date }) => {
