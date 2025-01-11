@@ -9,7 +9,7 @@ import interactionPlugin from "@fullcalendar/interaction";
 import { EventClickArg } from "@fullcalendar/core";
 
 interface Event {
-  id: string;
+  id: number;
   title: string;
   details: string;
   starttime: string; // ISO string
@@ -23,7 +23,7 @@ interface CalProps {
 }
 
 const Cal: React.FC<CalProps> = ({ user, bookings }) => {
-  const [localBookings, setLocalBookings] = useState<Event[]>(bookings);
+  const [localBookings] = useState<Event[]>(bookings);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [newBookingTitle, setNewBookingTitle] = useState<string>("");
   const [starttime, setStarttime] = useState<string>("");
@@ -37,7 +37,7 @@ const Cal: React.FC<CalProps> = ({ user, bookings }) => {
     setStarttime(starttimeValue);
     setEndtime(endtimeValue);
     setSelectedEvent({
-      id: "0",
+      id: 0,
       title: "",
       details: "",
       starttime: starttimeValue,
@@ -49,68 +49,77 @@ const Cal: React.FC<CalProps> = ({ user, bookings }) => {
 
   // Handle event click for editing
   const handleEventClick = (info: EventClickArg) => {
-    // Log the clicked event ID
     console.log("Clicked event ID:", info.event.id);
-  
-    // Log all bookings for comparison
-    console.log("Current bookings state:", bookings);
-  
-    // Find the clicked event in the bookings array
+    const clickedEvent = bookings.find((b) => String(b.id) === info.event.id);
 
-    const clickedEvent = bookings.find((b) => String(b.id) === String(info.event.id)); // Match event by ID
-
-  
     if (clickedEvent) {
-      // Event found, set it for editing
       setSelectedEvent(clickedEvent);
       setNewBookingTitle(clickedEvent.title);
       setStarttime(clickedEvent.starttime);
       setEndtime(clickedEvent.endtime);
     } else {
-      // Event not found, log error
       console.error(`Error: Event not found. Event ID: ${info.event.id}`);
       alert("Error: The selected event could not be found. Please try again.");
     }
   };
-  
-  
 
   // Save a new or updated booking
   const handleSaveBooking = async () => {
     if (!selectedEvent || !newBookingTitle) return;
 
-    if (selectedEvent.id === "0") {
-      // Add a new booking
-      const newEvent: Event = {
-        id: Math.random().toString(36).substr(2, 9), // Generate a temporary ID
-        title: newBookingTitle,
-        details: selectedEvent.details,
-        starttime,
-        endtime,
-        User: user.id,
-      };
-      setLocalBookings([...localBookings, newEvent]);
-    } else {
-      // Update an existing booking
-      setLocalBookings(
-        localBookings.map((b) =>
-          b.id === selectedEvent.id
-            ? { ...b, title: newBookingTitle, starttime, endtime, details: selectedEvent.details }
-            : b
-        )
-      );
-    }
+    const idAsString = String(selectedEvent.id);
+    const idAsNumber = selectedEvent.id;
 
-    setSelectedEvent(null);
-    setNewBookingTitle("");
+    const method = idAsNumber === 0 ? "POST" : "PUT";
+    const endpoint = idAsNumber === 0 ? "/api/Bookings" : `/api/Bookings/${idAsString}`;
+
+    try {
+      const response = await fetch(endpoint, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...selectedEvent,
+          title: newBookingTitle,
+          starttime,
+          endtime,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        alert(data.error || "Failed to save booking.");
+        return;
+      }
+
+      setSelectedEvent(null);
+      setNewBookingTitle("");
+    } catch (error) {
+      console.error("Error saving booking:", error);
+    }
   };
 
   // Delete a booking
-  const handleDeleteBooking = () => {
+  const handleDeleteBooking = async () => {
     if (!selectedEvent || !selectedEvent.id) return;
 
-    setLocalBookings(localBookings.filter((b) => b.id !== selectedEvent.id));
-    setSelectedEvent(null);
+    const idAsString = String(selectedEvent.id);
+
+    try {
+      const response = await fetch(`/api/Bookings/${idAsString}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        alert(data.error || "Failed to delete booking.");
+        return;
+      }
+
+      setSelectedEvent(null);
+      setNewBookingTitle("");
+    } catch (error) {
+      console.error("Error deleting booking:", error);
+    }
   };
 
   return (
@@ -134,26 +143,26 @@ const Cal: React.FC<CalProps> = ({ user, bookings }) => {
         events={localBookings.map((event) => {
           console.log("Event in calendar:", event.id);
           return {
-          id: event.id,
-          title: event.title,
-          start: event.starttime,
-          end: event.endtime,
-        };
+            id: String(event.id), // Pass ID as string for FullCalendar
+            title: event.title,
+            start: event.starttime,
+            end: event.endtime,
+          };
         })}
         eventClick={handleEventClick}
         select={handleDateSelect}
         height="auto"
       />
       <pre className="text-xs font-mono p-3 rounded border px-14 max-h-32 overflow-auto">
-          {JSON.stringify(bookings, null, 2)}
-        </pre>
+        {JSON.stringify(bookings, null, 2)}
+      </pre>
 
       {/* Booking Modal */}
       {selectedEvent && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10">
           <div className="bg-white p-6 rounded-lg max-w-md w-full shadow-lg">
             <h2 className="text-xl font-bold mb-4 text-black">
-              {selectedEvent.id === "0" ? "New Booking" : "Edit Booking"}
+              {selectedEvent.id === 0 ? "New Booking" : "Edit Booking"}
             </h2>
             <label className="block mb-2 font-medium text-black">Title</label>
             <input
@@ -193,7 +202,7 @@ const Cal: React.FC<CalProps> = ({ user, bookings }) => {
               >
                 Save
               </button>
-              {selectedEvent.id !== "0" && (
+              {selectedEvent.id !== 0 && (
                 <button
                   className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"
                   onClick={handleDeleteBooking}
