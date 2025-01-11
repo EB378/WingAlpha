@@ -26,7 +26,6 @@ export default async function ProtectedPage({
     console.error("Error fetching bookings:", error.message);
   }
 
-  // Provide fallback for email
   const userForCal = {
     id: user.id,
     email: user.email || "", // Fallback to empty string if email is undefined
@@ -40,7 +39,7 @@ export default async function ProtectedPage({
           {JSON.stringify(user, null, 2)}
         </pre>
 
-        {/* Pass the user and bookings data to the Cal component */}
+        {/* Pass only data */}
         <Cal user={userForCal} bookings={bookings || []} />
       </div>
     </div>
