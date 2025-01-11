@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from "react";
 import { parseISO } from "date-fns";
 import FullCalendar from "@fullcalendar/react";
