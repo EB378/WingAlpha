@@ -6,7 +6,7 @@ export async function GET() {
     const supabase = createClient();
     const { data: bookings, error } = await (await supabase)
       .from("bookings")
-      .select("id, title, details, starttime, endtime, created_at, User");
+      .select("id, title, details, starttime, endtime, created_at, user");
 
     if (error) {
       console.error("Error fetching bookings:", error.message);
@@ -23,11 +23,11 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const supabase = createClient();
-    const { title, details, starttime, endtime, User } = await req.json();
+    const { title, details, starttime, endtime, user } = await req.json();
 
-    if (!title || !starttime || !endtime || !User) {
+    if (!title || !starttime || !endtime || !user) {
       return NextResponse.json(
-        { error: "Missing required fields: title, starttime, endtime, User are mandatory." },
+        { error: "Missing required fields: title, starttime, endtime, user are mandatory." },
         { status: 400 }
       );
     }
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
       details,
       starttime,
       endtime,
-      User,
+      user,
     });
 
     if (error) {

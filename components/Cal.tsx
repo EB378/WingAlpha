@@ -1,139 +1,92 @@
+// components/Cal.tsx
 "use client";
 
 import React, { useState } from "react";
-import { parseISO } from "date-fns";
+import { formatISO, parseISO } from "date-fns";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
+import { useBooking } from "@/hooks/useBookings"; // Make sure this path is correct
 import { EventClickArg } from "@fullcalendar/core";
 
 interface Event {
   id: number;
   title: string;
   details: string;
-  starttime: string; // ISO string
-  endtime: string; // ISO string
-  User: string; // User ID
+  starttime: string;
+  endtime: string;
+  user: string; // User ID
 }
 
 interface CalProps {
   user: { id: string; email?: string };
-  bookings: Event[];
+  initialBookings: Event[];
 }
 
-const Cal: React.FC<CalProps> = ({ user, bookings }) => {
-  const [localBookings, setLocalBookings] = useState<Event[]>(bookings);
+const Cal: React.FC<CalProps> = ({ user, initialBookings }) => {
+  const { createBooking, updateBooking, deleteBooking, loading, error } = useBooking();
+  const [localBookings, setLocalBookings] = useState<Event[]>(initialBookings);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-  const [newBookingTitle, setNewBookingTitle] = useState<string>("");
-  const [starttime, setStarttime] = useState<string>("");
-  const [endtime, setEndtime] = useState<string>("");
 
-  // Handle event selection for new bookings
-  const handleDateSelect = (selection: { start: Date; end: Date }) => {
-    const starttimeValue = selection.start.toISOString();
-    const endtimeValue = selection.end.toISOString();
-    setStarttime(starttimeValue);
-    setEndtime(endtimeValue);
-    setSelectedEvent({
-      id: 0,
-      title: "",
-      details: "",
-      starttime: starttimeValue,
-      endtime: endtimeValue,
-      User: user.id, // Use the logged-in user's ID
-    });
-    setNewBookingTitle("");
-  };
-
-  // Handle event click for editing
   const handleEventClick = (info: EventClickArg) => {
     const clickedEvent = localBookings.find((b) => String(b.id) === String(info.event.id));
     if (clickedEvent) {
       setSelectedEvent(clickedEvent);
-      setNewBookingTitle(clickedEvent.title);
-      setStarttime(clickedEvent.starttime);
-      setEndtime(clickedEvent.endtime);
-    } else {
-      console.error(`Error: Event not found. Event ID: ${info.event.id}`);
-      alert("Error: The selected event could not be found. Please try again.");
     }
   };
 
-  // Save a new or updated booking
-  const handleSaveBooking = async () => {
-    if (!selectedEvent || !newBookingTitle) return;
+  const handleDateSelect = (selection: { start: Date; end: Date }) => {
+    setSelectedEvent({
+      id: 0,
+      title: '',
+      details: '',
+      starttime: formatISO(selection.start),
+      endtime: formatISO(selection.end),
+      user: user.id,
+    });
+  };
 
-    const idAsString = String(selectedEvent.id);
-    const idAsNumber = selectedEvent.id;
+  const saveBooking = async () => {
+    if (!selectedEvent) return;
 
-    const method = idAsNumber === 0 ? "POST" : "PUT";
-    const endpoint = idAsNumber === 0 ? "/api/Bookings" : `/api/Bookings/${idAsString}`;
+    const payload = {
+      ...selectedEvent,
+      user: user.id  // Ensure user ID is included in the booking details
+    };
+    
+    const method = selectedEvent.id === 0 ? createBooking : updateBooking;
 
     try {
-      const response = await fetch(endpoint, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...selectedEvent,
-          title: newBookingTitle,
-          starttime,
-          endtime,
-        }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        alert(data.error || "Failed to save booking.");
-        return;
-      }
-
-      // Update local state after saving
-      const updatedBookings = idAsNumber === 0
-        ? [...localBookings, await response.json()]
-        : localBookings.map((b) =>
-            b.id === idAsNumber
-              ? { ...b, title: newBookingTitle, starttime, endtime }
-              : b
-          );
-
+      const savedBooking = await method(payload);
+      const updatedBookings = selectedEvent.id === 0
+        ? [...localBookings, savedBooking]
+        : localBookings.map((b) => b.id === savedBooking.id ? {...b, ...savedBooking} : b);
       setLocalBookings(updatedBookings);
       setSelectedEvent(null);
-      setNewBookingTitle("");
-    } catch (error) {
-      console.error("Error saving booking:", error);
+    } catch (err) {
+      alert(`Failed to save booking: ${err}`);
     }
   };
 
-  // Delete a booking
-  const handleDeleteBooking = async () => {
-    if (!selectedEvent || !selectedEvent.id) return;
-
-    const idAsString = String(selectedEvent.id);
+  const handleDelete = async () => {
+    if (!selectedEvent || selectedEvent.id === 0) return;
 
     try {
-      const response = await fetch(`/api/Bookings/${idAsString}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        alert(data.error || "Failed to delete booking.");
-        return;
-      }
-
-      // Update local state after deleting
-      const updatedBookings = localBookings.filter((b) => b.id !== selectedEvent.id);
-      setLocalBookings(updatedBookings);
+      await deleteBooking(selectedEvent.id);
+      setLocalBookings(localBookings.filter((b) => b.id !== selectedEvent.id));
       setSelectedEvent(null);
-    } catch (error) {
-      console.error("Error deleting booking:", error);
+    } catch (err) {
+      alert(`Failed to delete booking: ${err}`);
     }
   };
 
   return (
     <div className="relative w-screen text-black p-6 bg-gray-100">
       <h1 className="text-4xl font-bold mb-6 text-center">Bookings Scheduler</h1>
+      <pre className="text-xs font-mono p-3 rounded border px-14 max-h-32 overflow-auto">
+          {JSON.stringify(user.id, null, 2)}
+        </pre>
       <FullCalendar
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
@@ -145,78 +98,50 @@ const Cal: React.FC<CalProps> = ({ user, bookings }) => {
         editable={true}
         selectable={true}
         events={localBookings.map((event) => ({
-          id: String(event.id), // Convert id to string for FullCalendar
+          id: String(event.id),
           title: event.title,
-          start: event.starttime,
-          end: event.endtime,
+          start: event.starttime ? parseISO(event.starttime).toISOString() : undefined,
+          end: event.endtime ? parseISO(event.endtime).toISOString() : undefined,
         }))}
         eventClick={handleEventClick}
         select={handleDateSelect}
         height="auto"
       />
-      <pre className="text-xs font-mono p-3 rounded border px-14 max-h-32 overflow-auto">
-        {JSON.stringify(localBookings, null, 2)}
-      </pre>
-
-      {/* Booking Modal */}
       {selectedEvent && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10">
           <div className="bg-white p-6 rounded-lg max-w-md w-full shadow-lg">
-            <h2 className="text-xl font-bold mb-4 text-black">
-              {selectedEvent.id === 0 ? "New Booking" : "Edit Booking"}
-            </h2>
-            <label className="block mb-2 font-medium text-black">Title</label>
+            <h2 className="text-xl font-bold mb-4">{selectedEvent.id === 0 ? "New Booking" : "Edit Booking"}</h2>
             <input
               type="text"
-              className="w-full p-2 border border-gray-300 bg-white rounded-md mb-4"
-              value={newBookingTitle}
-              onChange={(e) => setNewBookingTitle(e.target.value)}
+              placeholder="Title"
+              className="w-full p-2 border border-gray-300 rounded-md mb-4 bg-white"
+              value={selectedEvent.title}
+              onChange={(e) => setSelectedEvent({...selectedEvent, title: e.target.value})}
             />
-            <label className="block mb-2 font-medium text-black">Details</label>
             <textarea
-              className="w-full p-2 border border-gray-300 bg-white rounded-md mb-4"
+              placeholder="Details"
+              className="w-full p-2 border border-gray-300 rounded-md mb-4 bg-white"
               value={selectedEvent.details}
-              onChange={(e) =>
-                setSelectedEvent((prev) =>
-                  prev ? { ...prev, details: e.target.value } : null
-                )
-              }
+              onChange={(e) => setSelectedEvent({...selectedEvent, details: e.target.value})}
             />
-            <label className="block mb-2 font-medium text-black">Start Time</label>
             <input
               type="datetime-local"
-              className="w-full p-2 border border-gray-300 bg-white rounded-md mb-4"
-              value={parseISO(starttime).toISOString().slice(0, -8)}
-              onChange={(e) => setStarttime(e.target.value + ":00Z")}
+              className="w-full p-2 border border-gray-300 rounded-md mb-4 bg-white"
+              value={parseISO(selectedEvent.starttime).toISOString().slice(0, -8)}
+              onChange={(e) => setSelectedEvent({...selectedEvent, starttime: e.target.value + ":00Z"})}
             />
-            <label className="block mb-2 font-medium text-black">End Time</label>
             <input
               type="datetime-local"
-              className="w-full p-2 border border-gray-300 bg-white rounded-md mb-4"
-              value={parseISO(endtime).toISOString().slice(0, -8)}
-              onChange={(e) => setEndtime(e.target.value + ":00Z")}
+              className="w-full p-2 border border-gray-300 rounded-md mb-4 bg-white"
+              value={parseISO(selectedEvent.endtime).toISOString().slice(0, -8)}
+              onChange={(e) => setSelectedEvent({...selectedEvent, endtime: e.target.value + ":00Z"})}
             />
             <div className="flex justify-between">
-              <button
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
-                onClick={handleSaveBooking}
-              >
-                Save
-              </button>
+              <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md" onClick={saveBooking}>Save</button>
               {selectedEvent.id !== 0 && (
-                <button
-                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"
-                  onClick={handleDeleteBooking}
-                >
-                  Delete
-                </button>
+                <button className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md" onClick={handleDelete}>Delete</button>
               )}
-              <button
-                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md"
-                onClick={() => setSelectedEvent(null)}
-              >
-                Cancel
-              </button>
+              <button className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md" onClick={() => setSelectedEvent(null)}>Cancel</button>
             </div>
           </div>
         </div>

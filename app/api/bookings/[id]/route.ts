@@ -14,18 +14,18 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Invalid Booking ID format." }, { status: 400 });
     }
 
-    const { title, details, starttime, endtime, User } = await req.json();
+    const { title, details, starttime, endtime, user } = await req.json();
 
-    if (!title || !starttime || !endtime || !User) {
+    if (!title || !starttime || !endtime || !user) {
       return NextResponse.json(
-        { error: "Missing required fields: title, starttime, endtime, User are mandatory." },
+        { error: "Missing required fields: title, starttime, endtime, user are mandatory." },
         { status: 400 }
       );
     }
 
     const { error } = await (await supabase)
       .from("bookings")
-      .update({ title, details, starttime, endtime, User })
+      .update({ title, details, starttime, endtime, user })
       .eq("id", parseInt(id, 10));
 
     if (error) {

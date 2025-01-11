@@ -40,7 +40,7 @@ export default async function ProtectedPage({
         </pre>
 
         {/* Pass only data */}
-        <Cal user={userForCal} bookings={bookings || []} />
+        <Cal user={userForCal} initialBookings={bookings || []} />
       </div>
     </div>
   );
