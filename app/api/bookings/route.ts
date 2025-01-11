@@ -1,19 +1,28 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
-import { NextRequest } from "next/server";
 
-export async function PUT(req: NextRequest) {
+export async function GET() {
   try {
     const supabase = createClient();
+    const { data: bookings, error } = await (await supabase)
+      .from("bookings")
+      .select("id, title, details, starttime, endtime, created_at, User");
 
-    // Extract the ID directly from the URL
-    const url = new URL(req.url);
-    const id = url.pathname.split("/").pop();
-
-    if (!id || isNaN(Number(id))) {
-      return NextResponse.json({ error: "Invalid Booking ID format." }, { status: 400 });
+    if (error) {
+      console.error("Error fetching bookings:", error.message);
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    return NextResponse.json(bookings, { status: 200 });
+  } catch (error) {
+    console.error("Unexpected error during GET:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
+export async function POST(req: Request) {
+  try {
+    const supabase = createClient();
     const { title, details, starttime, endtime, User } = await req.json();
 
     if (!title || !starttime || !endtime || !User) {
@@ -23,45 +32,25 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    const { error } = await (await supabase)
-      .from("bookings")
-      .update({ title, details, starttime, endtime, User })
-      .eq("id", parseInt(id, 10));
+    const { data, error } = await (await supabase).from("bookings").insert({
+      title,
+      details,
+      starttime,
+      endtime,
+      User,
+    });
 
     if (error) {
-      console.error("Error updating booking:", error.message);
+      console.error("Error creating booking:", error.message);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ message: "Booking updated successfully." }, { status: 200 });
+    return NextResponse.json(
+      { message: "Booking created successfully.", data },
+      { status: 201 }
+    );
   } catch (error) {
-    console.error("Unexpected error during PUT:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-  }
-}
-
-export async function DELETE(req: NextRequest) {
-  try {
-    const supabase = createClient();
-
-    // Extract the ID directly from the URL
-    const url = new URL(req.url);
-    const id = url.pathname.split("/").pop();
-
-    if (!id || isNaN(Number(id))) {
-      return NextResponse.json({ error: "Invalid Booking ID format." }, { status: 400 });
-    }
-
-    const { error } = await (await supabase).from("bookings").delete().eq("id", parseInt(id, 10));
-
-    if (error) {
-      console.error("Error deleting booking:", error.message);
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    return NextResponse.json({ message: "Booking deleted successfully." }, { status: 200 });
-  } catch (error) {
-    console.error("Unexpected error during DELETE:", error);
+    console.error("Unexpected error during POST:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
