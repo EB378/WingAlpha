@@ -7,7 +7,7 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import { useBooking } from "../hooks/useBooking"; // Make sure this path is correct
+import { useBooking } from "@/hooks/useBooking"; // Make sure this path is correct
 import { EventClickArg } from "@fullcalendar/core";
 
 interface Event {
