@@ -7,7 +7,7 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import { useBooking } from "@/hooks/useBookings"; // Make sure this path is correct
+import { useBooking } from "../hooks/useBooking"; // Make sure this path is correct
 import { EventClickArg } from "@fullcalendar/core";
 
 interface Event {
@@ -25,7 +25,7 @@ interface CalProps {
 }
 
 const Cal: React.FC<CalProps> = ({ user, initialBookings }) => {
-  const { createBooking, updateBooking, deleteBooking, loading, error } = useBooking();
+  const { createBooking, updateBooking, deleteBooking } = useBooking();
   const [localBookings, setLocalBookings] = useState<Event[]>(initialBookings);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
 
