@@ -23,12 +23,11 @@ interface CalProps {
 }
 
 const Cal: React.FC<CalProps> = ({ user, bookings }) => {
-  const [localBookings] = useState<Event[]>(bookings);
+  const [localBookings, setLocalBookings] = useState<Event[]>(bookings);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [newBookingTitle, setNewBookingTitle] = useState<string>("");
   const [starttime, setStarttime] = useState<string>("");
   const [endtime, setEndtime] = useState<string>("");
-  const [error] = useState<string | null>(null);
 
   // Handle event selection for new bookings
   const handleDateSelect = (selection: { start: Date; end: Date }) => {
@@ -49,9 +48,7 @@ const Cal: React.FC<CalProps> = ({ user, bookings }) => {
 
   // Handle event click for editing
   const handleEventClick = (info: EventClickArg) => {
-    console.log("Clicked event ID:", info.event.id);
-    const clickedEvent = bookings.find((b) => String(b.id) === info.event.id);
-
+    const clickedEvent = localBookings.find((b) => String(b.id) === String(info.event.id));
     if (clickedEvent) {
       setSelectedEvent(clickedEvent);
       setNewBookingTitle(clickedEvent.title);
@@ -91,6 +88,16 @@ const Cal: React.FC<CalProps> = ({ user, bookings }) => {
         return;
       }
 
+      // Update local state after saving
+      const updatedBookings = idAsNumber === 0
+        ? [...localBookings, await response.json()]
+        : localBookings.map((b) =>
+            b.id === idAsNumber
+              ? { ...b, title: newBookingTitle, starttime, endtime }
+              : b
+          );
+
+      setLocalBookings(updatedBookings);
       setSelectedEvent(null);
       setNewBookingTitle("");
     } catch (error) {
@@ -115,8 +122,10 @@ const Cal: React.FC<CalProps> = ({ user, bookings }) => {
         return;
       }
 
+      // Update local state after deleting
+      const updatedBookings = localBookings.filter((b) => b.id !== selectedEvent.id);
+      setLocalBookings(updatedBookings);
       setSelectedEvent(null);
-      setNewBookingTitle("");
     } catch (error) {
       console.error("Error deleting booking:", error);
     }
@@ -125,11 +134,6 @@ const Cal: React.FC<CalProps> = ({ user, bookings }) => {
   return (
     <div className="relative w-screen text-black p-6 bg-gray-100">
       <h1 className="text-4xl font-bold mb-6 text-center">Bookings Scheduler</h1>
-      {error && (
-        <div className="text-red-500 text-center mb-4">
-          <p>{error}</p>
-        </div>
-      )}
       <FullCalendar
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
@@ -140,21 +144,18 @@ const Cal: React.FC<CalProps> = ({ user, bookings }) => {
         }}
         editable={true}
         selectable={true}
-        events={localBookings.map((event) => {
-          console.log("Event in calendar:", event.id);
-          return {
-            id: String(event.id), // Pass ID as string for FullCalendar
-            title: event.title,
-            start: event.starttime,
-            end: event.endtime,
-          };
-        })}
+        events={localBookings.map((event) => ({
+          id: String(event.id), // Convert id to string for FullCalendar
+          title: event.title,
+          start: event.starttime,
+          end: event.endtime,
+        }))}
         eventClick={handleEventClick}
         select={handleDateSelect}
         height="auto"
       />
       <pre className="text-xs font-mono p-3 rounded border px-14 max-h-32 overflow-auto">
-        {JSON.stringify(bookings, null, 2)}
+        {JSON.stringify(localBookings, null, 2)}
       </pre>
 
       {/* Booking Modal */}
