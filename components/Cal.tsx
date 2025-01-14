@@ -25,7 +25,7 @@ interface CalProps {
 }
 
 const Cal: React.FC<CalProps> = ({ user, initialBookings }) => {
-  const { createBooking, updateBooking, deleteBooking } = useBooking();
+  const { deleteBooking } = useBooking();
   const [localBookings, setLocalBookings] = useState<Event[]>(initialBookings);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
 
@@ -99,30 +99,7 @@ const Cal: React.FC<CalProps> = ({ user, initialBookings }) => {
 
 
 
-  const saveBooking = async () => {
-    if (!selectedEvent) return;
 
-    const payload = {
-      ...selectedEvent,
-      user: user.id, // Ensure user ID is included in the booking details
-    };
-
-    const method = selectedEvent.id === 0 ? createBooking : updateBooking;
-
-    try {
-      const savedBooking = await method(payload);
-      const updatedBookings =
-        selectedEvent.id === 0
-          ? [...localBookings, savedBooking]
-          : localBookings.map((b) =>
-              b.id === savedBooking.id ? { ...b, ...savedBooking } : b,
-            );
-      setLocalBookings(updatedBookings);
-      setSelectedEvent(null);
-    } catch (err) {
-      alert(`Failed to save booking: ${err}`);
-    }
-  };
 
   const handleDelete = async () => {
     if (!selectedEvent || selectedEvent.id === 0) return;
